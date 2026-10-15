@@ -1,0 +1,344 @@
+/* Conversations — portraits des PNJ — magisterphamtom */
+
+@font-face { font-family: "CNV Limelight"; src: url("../fonts/Limelight.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "CNV Rajdhani"; src: url("../fonts/Rajdhani-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "CNV Rajdhani"; src: url("../fonts/Rajdhani-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "CNV Inter"; src: url("../fonts/Inter-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "CNV Inter"; src: url("../fonts/Inter-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+
+/* =================================================================== */
+/*  Scène                                                              */
+/* =================================================================== */
+.cnv-stage {
+  --cnv-size: 120px;
+  position: fixed;
+  left: 50%;
+  z-index: 60;
+  transform: translateX(-50%) translateY(var(--cnv-shift, -16px));
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100vw - 420px);
+  min-width: 260px;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.cnv-stage.cnv-pos-top { top: 10px; }
+.cnv-stage.cnv-pos-bottom { bottom: 120px; flex-direction: column-reverse; --cnv-shift: 16px; }
+.cnv-stage.cnv-in { opacity: 1; --cnv-shift: 0px; }
+
+/* Mode libre : petite fenêtre à déplacer par son titre */
+.cnv-stage.cnv-pos-free {
+  transform: none;
+  max-width: 92vw;
+  transition: opacity 0.35s ease;
+}
+.cnv-stage.cnv-pos-free .cnv-head { cursor: grab; user-select: none; }
+.cnv-stage.cnv-pos-free.cnv-dragging .cnv-head { cursor: grabbing; }
+.cnv-stage.cnv-pos-free.cnv-dragging { opacity: 0.85; }
+.cnv-stage.cnv-pos-free .cnv-row { padding-bottom: calc(var(--cnv-size) * 0.24 + 12px); align-items: flex-start; }
+.cnv-stage.cnv-pos-free .cnv-p { transform-origin: center top; }
+.cnv-head::before {
+  /* poignée visible en mode libre */
+  content: none;
+}
+.cnv-stage.cnv-pos-free .cnv-head::before {
+  content: "\f58e"; /* grip-vertical */
+  font-family: var(--font-awesome, "Font Awesome 7 Pro", "Font Awesome 6 Pro");
+  font-weight: 900;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-right: 2px;
+}
+.cnv-btn.cnv-on { box-shadow: inset 0 0 0 1px currentColor; }
+.cnv-era-1933 .cnv-btn.cnv-on { color: #15110c; background: #c9a24a; }
+.cnv-era-modern .cnv-btn.cnv-on { color: #07121d; background: #8fe0ff; }
+.cnv-stage.cnv-out { opacity: 0; }
+
+.cnv-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  padding: 3px 6px 3px 14px;
+  border-radius: 3px;
+}
+.cnv-title { font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+.cnv-btn {
+  width: 24px; height: 24px; min-height: 0; line-height: 22px; padding: 0;
+  font-size: 11px; border-radius: 3px; cursor: pointer;
+  background: transparent; box-shadow: none;
+}
+.cnv-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 8px 14px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.cnv-stage.cnv-pos-top .cnv-row { align-items: flex-start; padding-bottom: calc(var(--cnv-size) * 0.24 + 12px); }
+.cnv-stage.cnv-pos-bottom .cnv-row { padding-top: calc(var(--cnv-size) * 0.24 + 12px); }
+.cnv-stage.cnv-collapsed .cnv-row { display: none; }
+
+/* Portrait */
+.cnv-p {
+  position: relative;
+  margin: 0;
+  width: var(--cnv-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+  transform-origin: center top;
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1), filter 0.35s ease, opacity 0.35s ease;
+  animation: cnv-arrive 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(var(--i) * 70ms);
+}
+.cnv-stage.cnv-pos-bottom .cnv-p { transform-origin: center bottom; }
+.cnv-stage.cnv-gm .cnv-p { cursor: pointer; }
+.cnv-frame {
+  position: relative;
+  width: var(--cnv-size);
+  height: calc(var(--cnv-size) * 1.25);
+  overflow: hidden;
+}
+.cnv-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  border: 0;
+  display: block;
+}
+.cnv-p figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: calc(var(--cnv-size) + 56px);
+  padding: 3px 10px 4px;
+  text-align: center;
+  line-height: 1.1;
+  font-style: normal;
+}
+.cnv-name {
+  font-size: 14px;
+  font-style: normal;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: break-word;
+}
+.cnv-name i { font-size: 10px; opacity: 0.7; margin-left: 3px; }
+.cnv-sub { font-size: 11px; font-style: normal; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.cnv-key {
+  position: absolute; top: -6px; left: -6px; z-index: 2;
+  width: 18px; height: 18px; line-height: 18px; text-align: center;
+  font-size: 11px; font-weight: 700; border-radius: 50%;
+}
+.cnv-hidden-tag { position: absolute; top: 4px; right: 4px; z-index: 2; font-size: 12px; color: #fff; text-shadow: 0 0 3px #000; }
+.cnv-p.cnv-hidden .cnv-frame { opacity: 0.45; }
+
+/* États */
+.cnv-p.cnv-speaking { transform: scale(1.16); z-index: 2; }
+.cnv-p.cnv-listening { transform: scale(0.9); filter: grayscale(0.65) brightness(0.72); }
+.cnv-p.cnv-new-speaker .cnv-frame { animation: cnv-pop 0.45s ease-out; }
+
+/* =================================================================== */
+/*  Thème années 30 : Art Déco noir et or                              */
+/* =================================================================== */
+.cnv-era-1933 .cnv-head,
+.cnv-era-1933 .cnv-row {
+  background: linear-gradient(180deg, rgba(30, 23, 14, 0.92), rgba(13, 10, 6, 0.92));
+  border: 1px solid #7d6128;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+.cnv-era-1933 .cnv-title { font-family: "CNV Limelight", Georgia, serif; color: #ecd08a; }
+.cnv-era-1933 .cnv-btn { color: #c9a24a; border: 1px solid rgba(201, 162, 74, 0.45); }
+.cnv-era-1933 .cnv-btn:hover { color: #15110c; background: #c9a24a; }
+.cnv-era-1933 .cnv-frame {
+  border: 2px solid #c9a24a;
+  outline: 1px solid #7d6128;
+  outline-offset: 3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  background: #15110c;
+}
+.cnv-era-1933 .cnv-frame img { filter: sepia(0.2) contrast(1.05); }
+.cnv-era-1933 .cnv-frame::before,
+.cnv-era-1933 .cnv-frame::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 12px; height: 12px;
+  background: #c9a24a;
+  transform: rotate(45deg);
+}
+.cnv-era-1933 .cnv-frame::before { top: -7px; left: calc(50% - 6px); }
+.cnv-era-1933 .cnv-frame::after { bottom: -7px; left: calc(50% - 6px); }
+.cnv-era-1933 figcaption { background: #0d0a06; border: 1px solid #7d6128; border-radius: 2px; }
+.cnv-era-1933 .cnv-name { font-family: "CNV Limelight", Georgia, serif; color: #ecd08a; letter-spacing: 0.02em; font-size: 13px; }
+.cnv-era-1933 .cnv-sub { font-family: Georgia, serif; font-style: italic !important; color: #d8ccae; }
+.cnv-era-1933 .cnv-key { background: #c9a24a; color: #15110c; }
+.cnv-era-1933 .cnv-p.cnv-speaking .cnv-frame {
+  border-color: #ecd08a;
+  box-shadow: 0 0 0 2px rgba(236, 208, 138, 0.35), 0 0 26px rgba(236, 208, 138, 0.55), 0 6px 18px rgba(0, 0, 0, 0.6);
+  animation: cnv-glow-gold 2.4s ease-in-out infinite;
+}
+.cnv-era-1933 .cnv-p.cnv-speaking::before {
+  /* soleil Art Déco derrière l'orateur */
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: calc(var(--cnv-size) * 0.62);
+  left: 50%;
+  width: calc(var(--cnv-size) * 2.1);
+  height: calc(var(--cnv-size) * 2.1);
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(236, 208, 138, 0.28) 0deg 4deg, transparent 4deg 12deg);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 20%, transparent 62%);
+  animation: cnv-spin 30s linear infinite;
+  pointer-events: none;
+}
+.cnv-era-1933 .cnv-p.cnv-speaking figcaption { border-color: #ecd08a; box-shadow: 0 0 12px rgba(236, 208, 138, 0.35); }
+
+/* =================================================================== */
+/*  Thème moderne : écran de station polaire                           */
+/* =================================================================== */
+.cnv-era-modern .cnv-head,
+.cnv-era-modern .cnv-row {
+  background:
+    linear-gradient(rgba(120, 200, 255, 0.06) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(90deg, rgba(120, 200, 255, 0.06) 1px, transparent 1px) 0 0 / 14px 14px,
+    linear-gradient(180deg, rgba(15, 34, 54, 0.92), rgba(7, 18, 29, 0.92));
+  border: 1px solid #2c5876;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+  border-radius: 8px;
+}
+.cnv-era-modern .cnv-title { font-family: "CNV Rajdhani", "Arial Narrow", sans-serif; font-weight: 700; color: #8fe0ff; }
+.cnv-era-modern .cnv-btn { color: #8fe0ff; border: 1px solid rgba(143, 224, 255, 0.4); border-radius: 6px; }
+.cnv-era-modern .cnv-btn:hover { color: #07121d; background: #8fe0ff; }
+.cnv-era-modern .cnv-frame {
+  border-radius: 8px;
+  border: 1px solid #4aa8e0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  background: #07121d;
+}
+.cnv-era-modern .cnv-frame::before,
+.cnv-era-modern .cnv-frame::after {
+  /* coins de viseur */
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: 16px; height: 16px;
+  border: 0 solid #8fe0ff;
+  pointer-events: none;
+}
+.cnv-era-modern .cnv-frame::before { top: 4px; left: 4px; border-top-width: 2px; border-left-width: 2px; }
+.cnv-era-modern .cnv-frame::after { bottom: 4px; right: 4px; border-bottom-width: 2px; border-right-width: 2px; }
+.cnv-era-modern figcaption { background: rgba(7, 18, 29, 0.92); border: 1px solid #2c5876; border-radius: 6px; }
+.cnv-era-modern .cnv-name { font-family: "CNV Rajdhani", "Arial Narrow", sans-serif; font-weight: 700; font-size: 15px; color: #e9f8ff; letter-spacing: 0.06em; text-transform: uppercase; }
+.cnv-era-modern .cnv-sub { font-family: "CNV Inter", sans-serif; color: #9fc4d8; }
+.cnv-era-modern .cnv-key { background: #ff6a13; color: #fff; }
+.cnv-era-modern .cnv-p.cnv-speaking .cnv-frame {
+  border-color: #8fe0ff;
+  box-shadow: 0 0 0 2px rgba(143, 224, 255, 0.35), 0 0 24px rgba(120, 220, 255, 0.55), 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+.cnv-era-modern .cnv-p.cnv-speaking .cnv-frame img { animation: cnv-scan-img 3s ease-in-out infinite; }
+.cnv-era-modern .cnv-p.cnv-speaking figcaption { border-color: #ff6a13; box-shadow: inset 3px 0 0 #ff6a13; }
+.cnv-era-modern .cnv-p.cnv-speaking .cnv-name::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #ff6a13;
+  box-shadow: 0 0 6px #ff6a13;
+  vertical-align: middle;
+  animation: cnv-blink 1.1s steps(2, end) infinite;
+}
+/* Barre de balayage sur l'orateur */
+.cnv-era-modern .cnv-p.cnv-speaking::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: var(--cnv-size);
+  height: calc(var(--cnv-size) * 1.25);
+  border-radius: 8px;
+  background: linear-gradient(180deg, transparent 0%, rgba(143, 224, 255, 0.0) 40%, rgba(143, 224, 255, 0.28) 50%, rgba(143, 224, 255, 0) 60%, transparent 100%) 0 0 / 100% 300% no-repeat;
+  animation: cnv-sweep 2.6s linear infinite;
+  pointer-events: none;
+}
+
+/* =================================================================== */
+/*  Animations                                                         */
+/* =================================================================== */
+@keyframes cnv-arrive { from { opacity: 0; transform: translateY(-14px) scale(0.92); } }
+.cnv-stage.cnv-pos-bottom .cnv-p { animation-name: cnv-arrive-up; }
+@keyframes cnv-arrive-up { from { opacity: 0; transform: translateY(14px) scale(0.92); } }
+@keyframes cnv-pop { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes cnv-glow-gold {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(236, 208, 138, 0.35), 0 0 18px rgba(236, 208, 138, 0.4), 0 6px 18px rgba(0, 0, 0, 0.6); }
+  50% { box-shadow: 0 0 0 2px rgba(236, 208, 138, 0.55), 0 0 32px rgba(236, 208, 138, 0.7), 0 6px 18px rgba(0, 0, 0, 0.6); }
+}
+@keyframes cnv-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes cnv-sweep { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
+@keyframes cnv-blink { 50% { opacity: 0.2; } }
+@keyframes cnv-scan-img { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.08) saturate(1.05); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cnv-p, .cnv-p::before, .cnv-p::after, .cnv-frame, .cnv-frame img, .cnv-name::before { animation: none !important; }
+}
+
+/* =================================================================== */
+/*  Fenêtre du Gardien                                                 */
+/* =================================================================== */
+.cnv-manager .window-content { padding: 0; }
+.cnv-mgr { display: flex; flex-direction: column; height: 100%; gap: 8px; padding: 10px 12px; }
+.cnv-mgr-top { display: flex; flex-direction: column; gap: 6px; }
+.cnv-mgr-status {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 8px; border-radius: 4px;
+  background: rgba(0, 0, 0, 0.15); border: 1px solid var(--color-border, #555);
+  font-size: 12px;
+}
+.cnv-mgr-status.on { border-color: #4caf50; }
+.cnv-mgr-status.on i.fa-circle { color: #4caf50; animation: cnv-blink 1.4s steps(2, end) infinite; }
+.cnv-mgr-status button { flex: 0 0 auto; width: auto; padding: 0 10px; }
+.cnv-mgr-status .cnv-go { font-weight: 700; }
+.cnv-drop {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px; border: 2px dashed var(--color-border, #777); border-radius: 6px;
+  font-size: 12px; text-align: left;
+}
+.cnv-drop.cnv-over { border-color: #c9a24a; background: rgba(201, 162, 74, 0.12); }
+.cnv-drop button { margin-left: auto; width: auto; padding: 0 10px; }
+.cnv-list { flex: 1; min-height: 120px; overflow-y: auto; list-style: none; margin: 0; padding: 0 2px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.cnv-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px; border-radius: 6px;
+  border: 1px solid var(--color-border, #555);
+  background: rgba(0, 0, 0, 0.08);
+}
+.cnv-item.speaking { border-color: #c9a24a; box-shadow: inset 3px 0 0 #c9a24a; }
+.cnv-item.is-hidden { opacity: 0.6; }
+.cnv-idx { flex: 0 0 18px; text-align: center; font-weight: 700; font-size: 12px; opacity: 0.7; }
+.cnv-item img { flex: 0 0 44px; width: 44px; height: 54px; object-fit: cover; object-position: center 18%; border-radius: 3px; border: 1px solid #777; cursor: pointer; }
+.cnv-fields { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cnv-fields input { height: 24px; font-size: 13px; }
+.cnv-fields input[data-field="subtitle"] { font-size: 11px; height: 21px; }
+.cnv-tools { display: grid; grid-template-columns: repeat(3, 24px); gap: 2px; }
+.cnv-tools button { width: 24px; height: 22px; min-height: 0; padding: 0; line-height: 20px; font-size: 11px; }
+.cnv-tools button.active { color: #15110c; background: #c9a24a; border-color: #c9a24a; }
+.cnv-empty { padding: 20px; text-align: center; opacity: 0.6; font-style: italic; }
+.cnv-presets { display: flex; gap: 4px; align-items: center; }
+.cnv-presets select { flex: 1; }
+.cnv-presets button { flex: 0 0 auto; width: auto; min-width: 30px; padding: 0 8px; }
+.cnv-tip { margin: 0; font-size: 11px; opacity: 0.75; }

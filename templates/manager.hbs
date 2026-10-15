@@ -1,0 +1,63 @@
+<section class="cnv-mgr">
+  <div class="cnv-mgr-top">
+    <div class="form-group">
+      <label>Titre</label>
+      <div class="form-fields"><input type="text" data-field="title" value="{{state.title}}" placeholder="ex. Interrogatoire au commissariat"></div>
+    </div>
+    <div class="form-group">
+      <label>Thème</label>
+      <div class="form-fields"><select data-field="era">
+        {{#each eras as |e|}}<option value="{{e.id}}" {{#if e.selected}}selected{{/if}}>{{e.label}}</option>{{/each}}
+      </select></div>
+    </div>
+    <div class="cnv-mgr-status {{#if state.active}}on{{/if}}">
+      {{#if state.active}}
+        <span><i class="fa-solid fa-circle"></i> Conversation affichée chez les joueurs (thème {{eraLabel}})</span>
+        <button type="button" data-action="stop"><i class="fa-solid fa-stop"></i> Terminer</button>
+      {{else}}
+        <span><i class="fa-regular fa-circle"></i> Préparation (rien n'est visible des joueurs)</span>
+        <button type="button" class="cnv-go" data-action="start"><i class="fa-solid fa-play"></i> Afficher aux joueurs</button>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="cnv-drop">
+    <i class="fa-solid fa-hand-pointer"></i>
+    <span>Glisser ici des <b>acteurs</b>, des <b>jetons</b> ou un <b>dossier d'acteurs</b></span>
+    <button type="button" data-action="addSelected"><i class="fa-solid fa-object-group"></i> Jetons sélectionnés</button>
+  </div>
+
+  <ol class="cnv-list">
+    {{#each participants as |p|}}
+      <li class="cnv-item{{#if p.speaking}} speaking{{/if}}{{#if p.hidden}} is-hidden{{/if}}" data-id="{{p.id}}">
+        <span class="cnv-idx" data-tooltip="Maj + pavé numérique {{p.index}}">{{p.index}}</span>
+        <img src="{{p.img}}" alt="" data-action="pickImage" data-tooltip="Changer l'image">
+        <div class="cnv-fields">
+          <input type="text" data-field="name" value="{{p.name}}" placeholder="Nom affiché">
+          <input type="text" data-field="subtitle" value="{{p.subtitle}}" placeholder="Rôle (facultatif) — ex. inspecteur du NYPD">
+        </div>
+        <div class="cnv-tools">
+          <button type="button" class="{{#if p.speaking}}active{{/if}}" data-action="speak" data-tooltip="Donner la parole"><i class="fa-solid fa-comment-dots"></i></button>
+          <button type="button" class="{{#if p.unknown}}active{{/if}}" data-action="toggleUnknown" data-tooltip="{{#if p.unknown}}Révéler le nom{{else}}Masquer le nom (« ??? »){{/if}}"><i class="fa-solid fa-mask"></i></button>
+          <button type="button" class="{{#if p.hidden}}active{{/if}}" data-action="toggleHidden" data-tooltip="{{#if p.hidden}}Montrer aux joueurs{{else}}Cacher aux joueurs{{/if}}"><i class="fa-solid {{#if p.hidden}}fa-eye-slash{{else}}fa-eye{{/if}}"></i></button>
+          <button type="button" data-action="up" {{#if p.first}}disabled{{/if}} data-tooltip="Monter"><i class="fa-solid fa-arrow-up"></i></button>
+          <button type="button" data-action="down" {{#if p.last}}disabled{{/if}} data-tooltip="Descendre"><i class="fa-solid fa-arrow-down"></i></button>
+          <button type="button" data-action="remove" data-tooltip="Retirer"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </li>
+    {{else}}
+      <li class="cnv-empty">Aucun participant pour l'instant.</li>
+    {{/each}}
+  </ol>
+
+  <div class="cnv-presets">
+    <select {{#unless hasPresets}}disabled{{/unless}}>
+      {{#each presets as |pr|}}<option value="{{pr.id}}">{{pr.name}} ({{pr.participants.length}})</option>{{else}}<option>Aucune conversation enregistrée</option>{{/each}}
+    </select>
+    <button type="button" data-action="loadPreset" {{#unless hasPresets}}disabled{{/unless}} data-tooltip="Charger"><i class="fa-solid fa-folder-open"></i></button>
+    <button type="button" data-action="deletePreset" {{#unless hasPresets}}disabled{{/unless}} data-tooltip="Supprimer"><i class="fa-solid fa-trash"></i></button>
+    <button type="button" data-action="savePreset" data-tooltip="Enregistrer la conversation actuelle"><i class="fa-solid fa-floppy-disk"></i> Enregistrer</button>
+    <button type="button" data-action="clear" data-tooltip="Retirer tous les participants"><i class="fa-solid fa-broom"></i></button>
+  </div>
+  <p class="cnv-tip">Clic sur un portrait à l'écran ou <b>Maj + pavé numérique 1-9</b> pour donner la parole, <b>Maj + 0</b> pour la reprendre. Un message envoyé au nom d'un participant lui donne aussi la parole.</p>
+</section>
