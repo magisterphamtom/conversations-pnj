@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/banner.png" alt="conversations-pnj" width="100%"></p>
+
 # Conversations – portraits des PNJ
 
 Module Foundry VTT (v13 / v14) pour les scènes de dialogue : le Gardien choisit les PNJ d'une conversation, leurs portraits s'affichent chez tous les joueurs et celui qui parle est mis en avant. Inspiré de ConversationHUD (Saervicus), qui n'est plus compatible avec la v14.
