@@ -67,6 +67,23 @@ Hooks.once("init", () => {
     hint: "Quand un message du chat est envoyé au nom d'un participant, il devient l'orateur.",
     scope: "world", config: true, type: Boolean, default: true
   });
+  game.settings.register(ID, "voiceSpeaker", {
+    name: "Orateur à la voix (Speaking Status)",
+    hint: "Quand un joueur parle dans son micro, le portrait de son investigateur s'avance automatiquement. Nécessite le module Speaking Status, micro activé chez le joueur.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
+  game.settings.register(ID, "voiceRelease", {
+    name: "Quand le joueur se tait",
+    hint: "Ce que devient la mise en avant quelques instants après la fin de sa phrase.",
+    scope: "world", config: true, type: String,
+    choices: { stay: "Son portrait reste en avant", previous: "Retour à l'orateur précédent", none: "Plus personne en avant" },
+    default: "stay"
+  });
+  game.settings.register(ID, "gmVoice", {
+    name: "La voix du Gardien ramène le PNJ",
+    hint: "Quand le Gardien parle dans son micro, le dernier PNJ qui avait la parole revient en avant.",
+    scope: "world", config: true, type: Boolean, default: true
+  });
   game.settings.register(ID, "position", {
     name: "Position des portraits",
     hint: "Pour vous seulement.",
@@ -186,6 +203,86 @@ Hooks.on("createChatMessage", (msg) => {
   } catch (err) {
     console.error(`${ID} | orateur automatique`, err);
   }
+});
+
+/* ================================================================== */
+/*  Orateur à la voix (signal « changeSpeakingStatus » de Speaking Status) */
+/* ================================================================== */
+
+const VOICE_START_MS = 250;   // il faut parler un quart de seconde pour prendre la parole (évite toux et bruits)
+const VOICE_RELEASE_MS = 1500;
+const voice = { timers: new Map(), prev: null, lastNpc: null };
+
+/** Le participant qui représente ce joueur : son personnage, sinon un acteur dont il est propriétaire. */
+function participantForUser(user, state) {
+  if (!user || user.isGM) return null;
+  const charId = user.character?.id;
+  return state.participants.find((p) => charId && p.actorId === charId)
+    ?? state.participants.find((p) => p.actorId && game.actors.get(p.actorId)?.testUserPermission(user, "OWNER"));
+}
+
+function isPlayerParticipant(id, state) {
+  const p = state.participants.find((x) => x.id === id);
+  const actor = p?.actorId ? game.actors.get(p.actorId) : null;
+  return !!actor?.hasPlayerOwner;
+}
+
+function voiceLater(userId, ms, fn) {
+  clearTimeout(voice.timers.get(userId));
+  voice.timers.set(userId, setTimeout(() => { voice.timers.delete(userId); fn(); }, ms));
+}
+
+Hooks.on("changeSpeakingStatus", (user, speaking) => {
+  try {
+    if (!game.users.activeGM?.isSelf) return;   // un seul client (le Gardien actif) décide
+    if (!user) return;
+    const state = getState();
+    if (!state.active) return;
+
+    // Le Gardien parle : le dernier PNJ revient en avant
+    if (user.isGM) {
+      if (!speaking || !game.settings.get(ID, "gmVoice")) return clearTimeout(voice.timers.get(user.id));
+      return voiceLater(user.id, VOICE_START_MS, () => {
+        const s = getState();
+        const npc = voice.lastNpc;
+        if (!s.active || !npc || s.speaker === npc || !s.participants.some((p) => p.id === npc)) return;
+        if (!isPlayerParticipant(s.speaker, s)) return; // un PNJ a déjà la parole : on n'y touche pas
+        setState({ speaker: npc });
+      });
+    }
+
+    if (!game.settings.get(ID, "voiceSpeaker")) return;
+    const p = participantForUser(user, state);
+    if (!p) return;
+
+    if (speaking) {
+      voiceLater(user.id, VOICE_START_MS, () => {
+        const s = getState();
+        if (!s.active || s.speaker === p.id) return;
+        if (!isPlayerParticipant(s.speaker, s)) voice.prev = s.speaker;
+        setState({ speaker: p.id });
+      });
+    } else {
+      const mode = game.settings.get(ID, "voiceRelease");
+      if (mode === "stay") return clearTimeout(voice.timers.get(user.id));
+      voiceLater(user.id, VOICE_RELEASE_MS, () => {
+        const s = getState();
+        if (s.speaker !== p.id) return;
+        const back = mode === "previous" && s.participants.some((x) => x.id === voice.prev) ? voice.prev : null;
+        setState({ speaker: back });
+      });
+    }
+  } catch (err) {
+    console.error(`${ID} | orateur à la voix`, err);
+  }
+});
+
+/* Mémorise le dernier PNJ qui a eu la parole (pour la voix du Gardien) */
+Hooks.on("updateSetting", (setting) => {
+  if (setting.key !== `${ID}.state`) return;
+  const s = getState();
+  if (s.speaker && !isPlayerParticipant(s.speaker, s)) voice.lastNpc = s.speaker;
+  if (!s.active) { voice.prev = null; voice.lastNpc = null; }
 });
 
 /* ================================================================== */

@@ -27,6 +27,24 @@ L'orateur grandit et s'illumine ; les autres s'estompent.
 ## Conversations enregistrées
 Enregistrez la distribution d'une scène (participants, titre, thème) et rechargez-la d'un clic.
 
+## Orateur à la voix (nouveau en 1.1.0)
+
+Avec le module [Speaking Status](https://github.com/magisterphamtom/speaking-status), la conversation suit les voix de la table :
+
+- **Un joueur parle dans son micro** : le portrait de son investigateur s'avance, comme si le Gardien avait cliqué dessus (il faut parler environ un quart de seconde, une toux ne suffit pas).
+- **Le Gardien reprend la parole** : le dernier PNJ qui parlait revient en avant. Le dialogue joueur ↔ PNJ se fait tout seul ; le Gardien ne clique plus que pour changer de PNJ.
+- Les clics et le pavé numérique restent prioritaires à tout moment.
+
+Pour que ça marche : ajoutez les investigateurs à la conversation (comme les PNJ), et chaque joueur doit avoir activé son micro dans Speaking Status. Le portrait est trouvé grâce au personnage du joueur (Configuration du joueur > Personnage), sinon grâce à un acteur dont il est propriétaire.
+
+Réglages (Paramètres > Conversations) :
+
+| Réglage | Rôle |
+|---|---|
+| Orateur à la voix | Active ou coupe la détection des voix des joueurs. |
+| Quand le joueur se tait | Son portrait reste en avant (par défaut), retour à l'orateur précédent, ou plus personne. |
+| La voix du Gardien ramène le PNJ | Le dernier PNJ revient en avant quand le Gardien parle. |
+
 ## Réglages
 - Monde : thème par défaut, orateur automatique.
 - Chaque utilisateur : position (haut, bas ou **libre**) et taille des portraits. En mode libre, la bande devient une petite fenêtre qu’on déplace par son titre, n’importe où sur l’écran ; sa position est mémorisée. Boutons − / + pour la taille, bouton flèches pour passer en mode libre, bouton pour réduire.
